@@ -159,8 +159,22 @@ clone_or_update_repo() {
     else
         log_info "Обновление существующего репозитория..."
         git fetch origin
+        
+        # Сбрасываем возможные локальные изменения в package-lock.json
+        if [ -f "package-lock.json" ]; then
+            git checkout -- package-lock.json
+        fi
+        
         git checkout "$BRANCH"
-        git pull origin "$BRANCH"
+        
+        # Пытаемся обновиться, игнорируя конфликты package-lock.json
+        git merge --no-edit origin/"$BRANCH" || {
+            log_warning "Конфликт при обновлении, пытаемся разрешить..."
+            git checkout -- package-lock.json
+            git merge --continue 2>/dev/null || git merge --abort
+            log_info "Переустанавливаем зависимости..."
+            npm install --production
+        }
     fi
     
     # Проверка успешности
