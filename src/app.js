@@ -18,7 +18,7 @@ async function buildApp() {
 
   // Регистрация плагинов
   // Используем исправленный плагин documentation вместо swagger
-  await app.register(require('./plugins/documentation'));
+  await app.register(require('./plugins/swagger-ui'));
   
   // CORS плагин - ДОБАВЬТЕ ЭТО!
   await app.register(require('@fastify/cors'), {
