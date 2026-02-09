@@ -3,6 +3,7 @@ require('dotenv').config();
 
 async function buildApp() {
   const app = fastify({
+    trustProxy: true,
     logger: {
       level: process.env.NODE_ENV === 'development' ? 'info' : 'warn',
       transport: process.env.NODE_ENV === 'development' ? {
