@@ -1,0 +1,32 @@
+{
+  "name": "taskmaster-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "migrate": "knex migrate:latest",
+    "migrate:rollback": "knex migrate:rollback",
+    "seed": "knex seed:run"
+  },
+  "dependencies": {
+    "@fastify/jwt": "^10.0.0",
+    "@fastify/swagger": "^9.7.0",
+    "@fastify/swagger-ui": "^5.2.5",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^16.3.1",
+    "fastify": "^5.7.4",
+    "fastify-plugin": "^4.5.1",
+    "jsonwebtoken": "^9.0.3",
+    "knex": "^3.1.0",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11",
+    "pino-pretty": "^11.0.0"
+  },
+  "overrides": {
+    "tar": "^7.5.3"
+  }
+}
