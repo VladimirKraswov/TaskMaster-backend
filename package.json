@@ -11,6 +11,7 @@
     "seed": "knex seed:run"
   },
   "dependencies": {
+    "@fastify/cors": "^11.2.0",
     "@fastify/jwt": "^10.0.0",
     "@fastify/static": "^9.0.0",
     "@fastify/swagger": "^9.7.0",

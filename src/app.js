@@ -17,7 +17,16 @@ async function buildApp() {
   });
 
   // Регистрация плагинов
-  await app.register(require('./plugins/swagger'));
+  // Используем исправленный плагин documentation вместо swagger
+  await app.register(require('./plugins/documentation'));
+  
+  // CORS плагин - ДОБАВЬТЕ ЭТО!
+  await app.register(require('@fastify/cors'), {
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+  });
   
   // JWT плагин
   await app.register(require('@fastify/jwt'), {
@@ -75,6 +84,16 @@ async function buildApp() {
       version: '1.0.0',
       documentation: '/documentation',
     };
+  });
+
+  // OpenAPI JSON (для документации)
+  app.get('/openapi.json', async (request, reply) => {
+    try {
+      const spec = app.swagger();
+      reply.send(spec);
+    } catch (error) {
+      reply.code(500).send({ error: 'Failed to generate OpenAPI spec' });
+    }
   });
 
   // Обработка ошибок
