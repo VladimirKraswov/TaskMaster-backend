@@ -36,21 +36,26 @@ module.exports = {
   },
 
   production: {
-    client: 'postgresql',
+    client: 'sqlite3',
     connection: {
-      host: process.env.DB_HOST || 'localhost',
-      port: process.env.DB_PORT || 5432,
-      database: process.env.DB_NAME || 'taskmaster',
-      user: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || '',
-    },
-    pool: {
-      min: 2,
-      max: 10,
+      filename: process.env.DATABASE_URL || '/var/www/taskmaster/prod.sqlite3',
     },
     migrations: {
       directory: './migrations',
       tableName: 'knex_migrations',
+    },
+    seeds: {
+      directory: './seeds',
+    },
+    useNullAsDefault: true,
+    pool: {
+      afterCreate: (conn, cb) => {
+        // Включаем WAL режим для лучшей производительности и включаем foreign keys
+        conn.run('PRAGMA journal_mode = WAL;', (err) => {
+          if (err) return cb(err);
+          conn.run('PRAGMA foreign_keys = ON;', cb);
+        });
+      }
     },
   },
 };
