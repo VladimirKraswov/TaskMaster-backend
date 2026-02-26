@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
-    "dev": "nodemon --watch src --ext ts --exec ts-node --files src/server.ts",
+    "dev": "tsx watch src/server.ts",
     "migrate": "ts-node -O '{\"module\":\"commonjs\"}' node_modules/knex/bin/cli.js --knexfile knexfile.ts migrate:latest",
     "migrate:rollback": "ts-node -O '{\"module\":\"commonjs\"}' node_modules/knex/bin/cli.js --knexfile knexfile.ts migrate:rollback",
     "seed": "ts-node -O '{\"module\":\"commonjs\"}' node_modules/knex/bin/cli.js --knexfile knexfile.ts seed:run"
@@ -32,6 +32,7 @@
     "nodemon": "^3.1.11",
     "pino-pretty": "^11.0.0",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
   "overrides": {
