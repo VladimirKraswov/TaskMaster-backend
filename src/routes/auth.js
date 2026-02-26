@@ -131,6 +131,7 @@ module.exports = async function (fastify, opts) {
           type: 'object',
           properties: {
             accessToken: { type: 'string' },
+            refreshToken: { type: 'string' },
           },
         },
         401: {
@@ -157,7 +158,15 @@ module.exports = async function (fastify, opts) {
         { expiresIn: '15m' }
       );
 
-      return { accessToken: newAccessToken };
+      const newRefreshToken = jwt.sign(
+        { id: user.id },
+        process.env.REFRESH_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      await db('users').where('id', user.id).update({ refresh_token: refreshToken });
+
+      return { accessToken: newAccessToken, refreshToken: newRefreshToken };
     } catch (err) {
       return reply.code(401).send({ error: 'Invalid refresh token' });
     }
