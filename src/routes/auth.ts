@@ -2,6 +2,7 @@ import { FastifyPluginAsync } from "fastify"
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import db from "../utils/database"
+import { loginSchema, logoutSchema, refreshSchema, registerSchema } from "../schemas/auth"
 
 interface RegisterBody {
   username: string
@@ -30,33 +31,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.post<{ Body: RegisterBody }>(
     "/register",
     {
-      schema: {
-        tags: ["auth"],
-        summary: "Регистрация нового пользователя",
-        body: {
-          type: "object",
-          required: ["username", "password"],
-          properties: {
-            username: { type: "string", minLength: 3, maxLength: 50 },
-            password: { type: "string", minLength: 6 }
-          }
-        },
-        response: {
-          201: {
-            type: "object",
-            properties: {
-              message: { type: "string" },
-              userId: { type: "number" }
-            }
-          },
-          400: {
-            type: "object",
-            properties: {
-              error: { type: "string" }
-            }
-          }
-        }
-      }
+      schema: registerSchema
     },
     async (request, reply) => {
       const { username, password } = request.body
@@ -91,33 +66,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.post<{ Body: LoginBody }>(
     "/login",
     {
-      schema: {
-        tags: ["auth"],
-        summary: "Авторизация пользователя",
-        body: {
-          type: "object",
-          required: ["username", "password"],
-          properties: {
-            username: { type: "string" },
-            password: { type: "string" }
-          }
-        },
-        response: {
-          200: {
-            type: "object",
-            properties: {
-              accessToken: { type: "string" },
-              refreshToken: { type: "string" }
-            }
-          },
-          401: {
-            type: "object",
-            properties: {
-              error: { type: "string" }
-            }
-          }
-        }
-      }
+      schema: loginSchema
     },
     async (request, reply) => {
       const { username, password } = request.body
@@ -166,31 +115,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.post<{ Body: RefreshBody }>(
     "/refresh",
     {
-      schema: {
-        tags: ["auth"],
-        summary: "Обновление access token",
-        body: {
-          type: "object",
-          required: ["refreshToken"],
-          properties: {
-            refreshToken: { type: "string" }
-          }
-        },
-        response: {
-          200: {
-            type: "object",
-            properties: {
-              accessToken: { type: "string" }
-            }
-          },
-          401: {
-            type: "object",
-            properties: {
-              error: { type: "string" }
-            }
-          }
-        }
-      }
+      schema: refreshSchema
     },
     async (request, reply) => {
       const { refreshToken } = request.body
@@ -230,19 +155,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
     "/logout",
     {
       preHandler: [fastify.authenticate],
-      schema: {
-        tags: ["auth"],
-        summary: "Выход пользователя",
-        security: [{ bearerAuth: [] }],
-        response: {
-          200: {
-            type: "object",
-            properties: {
-              message: { type: "string" }
-            }
-          }
-        }
-      }
+      schema: logoutSchema
     },
     async (request, reply) => {
       const user = request.user as { id: number }

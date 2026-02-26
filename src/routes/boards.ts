@@ -1,5 +1,6 @@
 import { FastifyPluginAsync } from "fastify"
 import db from "../utils/database"
+import { createBoardSchema, deleteBoardSchema, editBoardSchema, getBoardSchema, getBoardsSchema } from "../schemas/boards"
 
 interface Board {
   id: number
@@ -27,26 +28,7 @@ const boardsRoutes: FastifyPluginAsync = async (fastify) => {
     "/boards",
     {
       preHandler: [fastify.authenticate],
-      schema: {
-        tags: ["boards"],
-        summary: "Получить все доски пользователя",
-        security: [{ bearerAuth: [] }],
-        response: {
-          200: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                id: { type: "number" },
-                name: { type: "string" },
-                user_id: { type: "number" },
-                created_at: { type: "string", format: "date-time" },
-                updated_at: { type: "string", format: "date-time" }
-              }
-            }
-          }
-        }
-      } as any
+      schema: getBoardsSchema
     },
     async (request): Promise<Board[]> => {
       return db("boards")
@@ -64,18 +46,7 @@ const boardsRoutes: FastifyPluginAsync = async (fastify) => {
     "/boards/:id",
     {
       preHandler: [fastify.authenticate],
-      schema: {
-        tags: ["boards"],
-        summary: "Получить доску по ID",
-        security: [{ bearerAuth: [] }],
-        params: {
-          type: "object",
-          required: ["id"],
-          properties: {
-            id: { type: "number" }
-          }
-        }
-      } as any
+      schema: getBoardSchema
     },
     async (request, reply) => {
       const board = await db("boards")
@@ -102,18 +73,7 @@ const boardsRoutes: FastifyPluginAsync = async (fastify) => {
     "/boards",
     {
       preHandler: [fastify.authenticate],
-      schema: {
-        tags: ["boards"],
-        summary: "Создать новую доску",
-        security: [{ bearerAuth: [] }],
-        body: {
-          type: "object",
-          required: ["name"],
-          properties: {
-            name: { type: "string", minLength: 1, maxLength: 100 }
-          }
-        }
-      } as any
+      schema: createBoardSchema
     },
     async (request, reply) => {
       const [id] = await db("boards").insert({
@@ -138,11 +98,7 @@ const boardsRoutes: FastifyPluginAsync = async (fastify) => {
     "/boards/:id",
     {
       preHandler: [fastify.authenticate],
-      schema: {
-        tags: ["boards"],
-        summary: "Обновить доску",
-        security: [{ bearerAuth: [] }]
-      } as any
+      schema: editBoardSchema
     },
     async (request, reply) => {
       const updated = await db("boards")
@@ -169,11 +125,7 @@ const boardsRoutes: FastifyPluginAsync = async (fastify) => {
     "/boards/:id",
     {
       preHandler: [fastify.authenticate],
-      schema: {
-        tags: ["boards"],
-        summary: "Удалить доску",
-        security: [{ bearerAuth: [] }]
-      } as any
+      schema: deleteBoardSchema
     },
     async (request, reply) => {
       const deleted = await db("boards")
