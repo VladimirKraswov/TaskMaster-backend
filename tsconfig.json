@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",                // Современная версия JS
+    "module": "commonjs",               // Для Node.js
+    "lib": ["ES2020"],
+    "outDir": "./dist",                  // Папка для скомпилированных файлов
+    // "rootDir": "./src",                   // Исходники TypeScript
+    "strict": true,                        // Включить все строгие проверки
+    "esModuleInterop": true,               // Для удобного импорта CommonJS
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,              // Если используете .json файлы
+    "moduleResolution": "node"
+  },
+  "include": ["src/**/*", "types/**/*", "knexfile.ts"],
+  "exclude": ["node_modules", "dist", "seeds", "migrations"]
+}
