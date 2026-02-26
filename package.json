@@ -4,11 +4,12 @@
   "description": "",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
-    "migrate": "knex migrate:latest",
-    "migrate:rollback": "knex migrate:rollback",
-    "seed": "knex seed:run"
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "nodemon --watch src --ext ts --exec ts-node --files src/server.ts",
+    "migrate": "ts-node -O '{\"module\":\"commonjs\"}' node_modules/knex/bin/cli.js --knexfile knexfile.ts migrate:latest",
+    "migrate:rollback": "ts-node -O '{\"module\":\"commonjs\"}' node_modules/knex/bin/cli.js --knexfile knexfile.ts migrate:rollback",
+    "seed": "ts-node -O '{\"module\":\"commonjs\"}' node_modules/knex/bin/cli.js --knexfile knexfile.ts seed:run"
   },
   "dependencies": {
     "@fastify/cors": "^11.2.0",
@@ -26,8 +27,12 @@
     "swagger-ui-dist": "^5.31.0"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^25.3.1",
     "nodemon": "^3.1.11",
-    "pino-pretty": "^11.0.0"
+    "pino-pretty": "^11.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   },
   "overrides": {
     "tar": "^7.5.3"
