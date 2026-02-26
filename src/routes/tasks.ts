@@ -1,5 +1,6 @@
 import { FastifyPluginAsync } from "fastify"
 import db from "../utils/database"
+import { CreateColumnSchema, createTaskSchema, deleteColumnSchema, deleteTaskSchema, editColumnSchema, editTaskSchema, getAllTasksBoardSchema, getTaskByIdSchema } from "../schemas/tasks"
 
 interface BoardParams {
   boardId: number
@@ -47,11 +48,7 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
     "/boards/:boardId/tasks",
     {
       preHandler: [fastify.authenticate],
-      schema: {
-        tags: ["tasks"],
-        summary: "Получить задачи доски",
-        security: [{ bearerAuth: [] }]
-      } as any
+      schema: getAllTasksBoardSchema,
     },
     async (request, reply) => {
       const { boardId } = request.params
@@ -101,11 +98,7 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
     "/tasks/:id",
     {
       preHandler: [fastify.authenticate],
-      schema: {
-        tags: ["tasks"],
-        summary: "Получить задачу по ID",
-        security: [{ bearerAuth: [] }]
-      } as any
+      schema: getTaskByIdSchema
     },
     async (request, reply) => {
       const task = await db("tasks")
@@ -129,10 +122,7 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
     "/boards/:boardId/columns",
     {
       preHandler: [fastify.authenticate],
-      schema: {
-        tags: ["tasks"],
-        summary: "Создать колонку"
-      } as any
+      schema: CreateColumnSchema
     },
     async (request, reply) => {
       const { boardId } = request.params
@@ -168,10 +158,7 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
     "/boards/:boardId/columns/:columnId",
     {
       preHandler: [fastify.authenticate],
-      schema: {
-        tags: ["tasks"],
-        summary: "Обновить колонку"
-      } as any
+      schema: editColumnSchema
     },
     async (request, reply) => {
       const { boardId, columnId } = request.params
@@ -202,10 +189,7 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
     "/boards/:boardId/columns/:columnId",
     {
       preHandler: [fastify.authenticate],
-      schema: {
-        tags: ["tasks"],
-        summary: "Удалить колонку"
-      } as any
+      schema: deleteColumnSchema
     },
     async (request, reply) => {
       const deleted = await db("cols")
@@ -232,10 +216,7 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
     "/boards/:boardId/tasks",
     {
       preHandler: [fastify.authenticate],
-      schema: {
-        tags: ["tasks"],
-        summary: "Создать задачу"
-      } as any
+      schema: createTaskSchema
     },
     async (request, reply) => {
       const { boardId } = request.params
@@ -274,10 +255,7 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
     "/tasks/:id",
     {
       preHandler: [fastify.authenticate],
-      schema: {
-        tags: ["tasks"],
-        summary: "Обновить задачу"
-      } as any
+      schema: editTaskSchema
     },
     async (request, reply) => {
       const task = await db("tasks")
@@ -322,10 +300,7 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
     "/tasks/:id",
     {
       preHandler: [fastify.authenticate],
-      schema: {
-        tags: ["tasks"],
-        summary: "Удалить задачу"
-      } as any
+      schema: deleteTaskSchema
     },
     async (request, reply) => {
       const deleted = await db("tasks")
