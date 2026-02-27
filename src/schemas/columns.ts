@@ -51,8 +51,9 @@ export const CreateColumnSchema = {
       body: {
         type: 'object',
         properties: {
-          targetColumnId: { type: 'string'},
+          targetColumnId: { type: 'integer'},
           placement: { type: 'string', enum:['before', 'after','start', 'end'] },
+          version: { type: 'integer' }
         },
       },
       response: {
@@ -91,6 +92,7 @@ export const editColumnSchema = {
       required: ['title', 'display_order'],
       properties: {
         title: { type: 'string', minLength: 1, maxLength: 255 },
+        version: { type: 'integer' }
       }
     },
     response: {

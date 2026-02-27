@@ -19,11 +19,12 @@ interface CreateColumnBody {
 interface MoveColumnBody {
   targetColumnId?: number;
   placement: 'before' | 'after' | 'start' | 'end'
+  version: number
 }
 
 interface UpdateColumnBody {
   title: string
-  display_order: string
+  version: number
 }
 
 
@@ -89,7 +90,7 @@ const columnRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, reply) => {
       const { boardId, columnId } = request.params
-      const { placement, targetColumnId } = request.body
+      const { placement, targetColumnId, version } = request.body
 
       // 2. Проверяем существование перемещаемой колонки и её принадлежность доске
       const column = await db('cols')
@@ -97,6 +98,12 @@ const columnRoutes: FastifyPluginAsync = async (fastify) => {
         .first();
       if (!column) {
         return reply.code(404).send({ error: 'Column not found in this board' });
+      }
+      if (column.version !== version) {
+        return reply.code(409).send({
+          error: "Position conflict",
+          message: "The task has been moved by another user. Please refresh and try again.",
+        });
       }
 
       // 3. Если указана целевая колонка, проверяем её
@@ -196,7 +203,7 @@ const columnRoutes: FastifyPluginAsync = async (fastify) => {
     }
     await db('cols')
       .where({ id: columnId })
-      .update({ display_order: newOrder });
+      .update({ display_order: newOrder, version: column.version + 1 });
 
     // 6. Возвращаем обновлённую колонку (можно вернуть полные данные)
     const updatedColumn = await db('cols').where({ id: columnId }).first();
@@ -217,7 +224,7 @@ const columnRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, reply) => {
       const { boardId, columnId } = request.params
-      const { title } = request.body
+      const { title, version } = request.body
 
       const column = await db("cols")
         .where({ id: columnId, board_id: boardId })
@@ -227,9 +234,16 @@ const columnRoutes: FastifyPluginAsync = async (fastify) => {
         return reply.code(404).send({ error: "Column not found" })
       }
 
+      if (column.version !== version) {
+        return reply.code(409).send({
+          error: "Position conflict",
+          message: "The task has been moved by another user. Please refresh and try again.",
+        });
+      }
+
       await db("cols")
         .where({ id: columnId })
-        .update({ title })
+        .update({ title, version: column.version + 1 })
 
       return { id: columnId, title, board_id: boardId }
     }

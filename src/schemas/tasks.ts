@@ -27,7 +27,8 @@ export const getAllTasksBoardSchema = {
                     properties: {
                       id: { type: 'integer' },
                       title: { type: 'string' },
-                      version: {type: 'integer'},
+                      contentVersion: {type: 'integer'},
+                      positionVersion: {type: 'integer'},
                       display_order: {type: 'string'},
                       user_id: {type: 'integer'},
                     }
@@ -66,6 +67,8 @@ export const getTaskByIdSchema ={
             display_order: {type: 'string'},
             board_id: { type: 'integer' },
             col_id: { type: 'integer' },
+            contentVersion: {type: 'integer'},
+            positionVersion: {type: 'integer'},
             created_at: { type: 'string', format: 'date-time' },
             updated_at: { type: 'string', format: 'date-time' },
           },
@@ -101,6 +104,7 @@ export const moveTaskSchema = {
         properties: {
           targetTaskId: { type: 'integer'},
           colId: { type: 'integer'},
+          positionVersion: { type: 'integer' },
           placement: { type: 'string', enum:['before', 'after','start', 'end'] },
         },
       },
@@ -112,6 +116,8 @@ export const moveTaskSchema = {
             title: { type: 'string' },
             board_id: { type: 'integer' },
             display_order: { type: 'string' },
+            contentVersion: {type: 'integer'},
+            positionVersion: {type: 'integer'},
           },
         },
         400: {
@@ -151,7 +157,9 @@ export const createTaskSchema = {
             id: { type: 'integer' },
             title: { type: 'string' },
             board_id: { type: 'integer' },
-            col_id: {type: 'integer'}
+            col_id: {type: 'integer'},
+            contentVersion: {type: 'integer'},
+            positionVersion: {type: 'integer'},
           },
         },
         400: {
@@ -180,6 +188,7 @@ export const editTaskSchema = {
           title: { type: 'string', minLength: 1, maxLength: 255 },
           description: { type: 'string' },
           user_id: { type: 'integer' },
+          contentVersion: { type: 'integer' }
         },
       },
       response: {

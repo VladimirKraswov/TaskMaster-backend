@@ -14,6 +14,7 @@ interface TaskParams {
 interface MoveTaskBody{
   colId: number
   targetTaskId?: number;
+  positionVersion: number
   placement: 'before' | 'after' | 'start' | 'end'
 }
 
@@ -27,6 +28,7 @@ interface UpdateTaskBody {
   title?: string
   description?: string
   user_id?: number
+  contentVersion: number
 }
 
 const tasksRoutes: FastifyPluginAsync = async (fastify) => {
@@ -61,7 +63,7 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
       const colIds = cols.map((c) => c.id)
 
       const tasks = await db("tasks")
-       .select('id', 'title', 'col_id', 'user_id', 'display_order, version')
+       .select('id', 'title', 'col_id', 'user_id', 'display_order', 'contentVersion', 'positionVersion')
         .whereIn("col_id", colIds)
         .orderBy("display_order", "asc")
 
@@ -181,6 +183,13 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
         return reply.code(404).send({ error: "Task not found" })
       }
 
+      if (task.contentVersion !== request.body.contentVersion) {
+        return reply.code(409).send({
+          error: "Position conflict",
+          message: "The task has been moved by another user. Please refresh and try again.",
+        });
+      }
+
       const updateData: Partial<UpdateTaskBody> & {
         updated_at?: any
       } = {}
@@ -191,11 +200,12 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
         updateData.description = request.body.description
       if (request.body.user_id !== undefined)
         updateData.user_id = request.body.user_id
+      updateData.contentVersion = task.contentVersion + 1 
 
       updateData.updated_at = db.fn.now()
 
       await db("tasks")
-        .where({ id: request.params.id })
+        .where({ id: request.params.id})
         .update(updateData)
 
       return { message: "Task updated successfully" }
@@ -216,13 +226,21 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, reply) => {
       const { id } = request.params
-      const { placement, targetTaskId, colId } = request.body
-      // 2. Проверяем существование перемещаемой колонки и её принадлежность доске
+      const { placement, targetTaskId, colId, positionVersion } = request.body
+      // 1. Проверяем существование перемещаемой колонки и её принадлежность доске
       const task = await db('tasks')
         .where({ id: id })
         .first();
       if (!task) {
         return reply.code(404).send({ error: 'task not found ' });
+      }
+
+      // 2. Проверяем версию позиции
+      if (task.positionVersion !== positionVersion) {
+        return reply.code(409).send({
+          error: "Position conflict",
+          message: "The task has been moved by another user. Please refresh and try again.",
+        });
       }
 
       // 3. Если указана целевая колонка, проверяем её
@@ -322,7 +340,7 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
     }
     await db('tasks')
       .where({ id: id })
-      .update({ display_order: newOrder, col_id: colId, updated_at: db.fn.now() });
+      .update({ display_order: newOrder, col_id: colId, updated_at: db.fn.now(), positionVersion:  task.positionVersion + 1});
 
     // 6. Возвращаем обновлённую колонку (можно вернуть полные данные)
     const updatedColumn = await db('tasks').where({ id: id }).first();
