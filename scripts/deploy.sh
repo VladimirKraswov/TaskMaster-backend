@@ -260,6 +260,13 @@ install_project_dependencies() {
     log_success "Зависимости проекта установлены"
 }
 
+build_ts_project(){
+    cd "$PROJECT_DIR"
+    log_info "Сборка проекта..."
+    npm run build
+    log_info "Сборка проекта завершена"
+}
+
 # Выполнение миграций базы данных
 run_migrations() {
     log_info "Выполнение миграций базы данных..."
@@ -267,7 +274,7 @@ run_migrations() {
     cd "$PROJECT_DIR"
     
     # Проверка существования knexfile.js
-    if [ ! -f "knexfile.js" ]; then
+    if [ ! -f "dist/knexfile.js" ]; then
         log_error "Файл knexfile.js не найден!"
         exit 1
     fi
@@ -280,7 +287,7 @@ run_migrations() {
     
     # Выполнение миграций
     log_info "Запуск миграций для production..."
-    NODE_ENV=production npx knex migrate:latest
+    NODE_ENV=production npx knex --knexfile dist/knexfile.js migrate:latest
     
     if [ $? -ne 0 ]; then
         log_error "Ошибка при выполнении миграций"
@@ -326,7 +333,7 @@ setup_pm2() {
 module.exports = {
   apps: [{
     name: '$PROJECT_NAME',
-    script: 'src/server.js',
+    script: 'dist/server.js',
     instances: 1,
     autorestart: true,
     watch: false,
@@ -449,7 +456,7 @@ git pull origin main
 echo "Установка зависимостей..."
 npm install --production
 echo "Выполнение миграций..."
-NODE_ENV=production npx knex migrate:latest
+NODE_ENV=production npx knex --knexfile dist/knexfile.js migrate:latest
 echo "Перезапуск приложения..."
 pm2 restart taskmaster-api
 echo "Обновление завершено"
@@ -481,6 +488,7 @@ main() {
     clone_or_update_repo
     setup_environment
     install_project_dependencies
+    build_ts_project
     run_migrations
     setup_pm2
     health_check

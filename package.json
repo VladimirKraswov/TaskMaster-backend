@@ -9,7 +9,9 @@
     "dev": "tsx watch src/server.ts",
     "migrate": "ts-node -O '{\"module\":\"commonjs\"}' node_modules/knex/bin/cli.js --knexfile knexfile.ts migrate:latest",
     "migrate:rollback": "ts-node -O '{\"module\":\"commonjs\"}' node_modules/knex/bin/cli.js --knexfile knexfile.ts migrate:rollback",
-    "seed": "ts-node -O '{\"module\":\"commonjs\"}' node_modules/knex/bin/cli.js --knexfile knexfile.ts seed:run"
+    "seed": "ts-node -O '{\"module\":\"commonjs\"}' node_modules/knex/bin/cli.js --knexfile knexfile.ts seed:run",
+    "migrate:prod": "node node_modules/knex/bin/cli.js --knexfile dist/knexfile.js migrate:latest",
+    "seed:prod": "node node_modules/knex/bin/cli.js --knexfile dist/knexfile.js seed:run"
   },
   "dependencies": {
     "@fastify/cors": "^11.2.0",

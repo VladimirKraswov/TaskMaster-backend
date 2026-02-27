@@ -11,29 +11,10 @@ interface TaskParams {
   id: number
 }
 
-interface ColumnParams {
-  boardId: number
-  columnId: number
-}
-
-interface CreateColumnBody {
-  title: string
-}
-
-interface MoveColumnBody {
-  targetColumnId?: number;
-  placement: 'before' | 'after' | 'start' | 'end'
-}
-
 interface MoveTaskBody{
   colId: number
   targetTaskId?: number;
   placement: 'before' | 'after' | 'start' | 'end'
-}
-
-interface UpdateColumnBody {
-  title: string
-  display_order: string
 }
 
 interface CreateTaskBody {
