@@ -12,6 +12,7 @@ import authenticatePlugin from './plugins/authenticate';
 import authRoutes from './routes/auth';
 import boardsRoutes from './routes/boards';
 import tasksRoutes from './routes/tasks';
+import columnRoutes from './routes/columns';
 
 // Расширяем интерфейс FastifyInstance для метода swagger(), добавляемого плагином swagger-ui
 interface FastifyInstanceWithSwagger extends FastifyInstance {
@@ -56,6 +57,7 @@ async function buildApp(): Promise<FastifyInstance> {
   await app.register(authRoutes, { prefix: '/api' });
   await app.register(boardsRoutes, { prefix: '/api' });
   await app.register(tasksRoutes, { prefix: '/api' });
+  await app.register(columnRoutes, { prefix: '/api' });
 
   // Health check
   app.get(

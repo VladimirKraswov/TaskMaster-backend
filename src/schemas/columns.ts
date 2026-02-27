@@ -1,6 +1,6 @@
 
 export const CreateColumnSchema = {
-      tags: ['tasks'],
+      tags: ['columns'],
       summary: 'создать колонку в доске',
       security: [{ bearerAuth: [] }],
       params: {
@@ -37,7 +37,7 @@ export const CreateColumnSchema = {
     }
 
   export const MoveolumnSchema = {
-      tags: ['tasks'],
+      tags: ['columns'],
       summary: 'переместить колонку в доске',
       security: [{ bearerAuth: [] }],
       params: {
@@ -75,7 +75,7 @@ export const CreateColumnSchema = {
     }
 
 export const editColumnSchema = {
-    tags: ['tasks'],
+    tags: ['columns'],
     summary: 'обновить колонку',
     security: [{ bearerAuth: [] }],
     params: {
@@ -112,7 +112,7 @@ export const editColumnSchema = {
 
 
 export const deleteColumnSchema = {
-    tags: ['tasks'],
+    tags: ['columns'],
     summary: 'удалить колонку',
     security: [{ bearerAuth: [] }],
     params: {
