@@ -61,6 +61,7 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
       const colIds = cols.map((c) => c.id)
 
       const tasks = await db("tasks")
+       .select('id', 'title', 'col_id', 'user_id', 'display_order, version')
         .whereIn("col_id", colIds)
         .orderBy("display_order", "asc")
 
