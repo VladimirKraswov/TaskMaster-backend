@@ -27,9 +27,6 @@ export const getAllTasksBoardSchema = {
                     properties: {
                       id: { type: 'integer' },
                       title: { type: 'string' },
-                      description: {type: 'string'},
-                      created_at: {type: 'string'},
-                      updated_at: {type: 'string'},
                       version: {type: 'integer'},
                       display_order: {type: 'string'},
                       user_id: {type: 'integer'},
