@@ -65,8 +65,10 @@ export const getTaskByIdSchema ={
           properties: {
             id: { type: 'integer' },
             title: { type: 'string' },
-            completed: { type: 'boolean' },
+            description: {type: 'string'},
+            display_order: {type: 'string'},
             board_id: { type: 'integer' },
+            col_id: { type: 'integer' },
             created_at: { type: 'string', format: 'date-time' },
             updated_at: { type: 'string', format: 'date-time' },
           },
@@ -86,22 +88,23 @@ export const getTaskByIdSchema ={
       },
     }
 
-export const CreateColumnSchema = {
+export const moveTaskSchema = {
       tags: ['tasks'],
-      summary: 'создать колонку в доске',
+      summary: 'переместить задачу в доске',
       security: [{ bearerAuth: [] }],
       params: {
         type: 'object',
-        required: ['boardId'],
+        required: ['id'],
         properties: {
-          boardId: { type: 'integer' },
+          id: { type: 'integer' },
         },
       },
       body: {
         type: 'object',
-        required: ['title'],
         properties: {
-          title: { type: 'string', minLength: 1, maxLength: 255 },
+          targetTaskId: { type: 'integer'},
+          colId: { type: 'integer'},
+          placement: { type: 'string', enum:['before', 'after','start', 'end'] },
         },
       },
       response: {
@@ -111,6 +114,7 @@ export const CreateColumnSchema = {
             id: { type: 'integer' },
             title: { type: 'string' },
             board_id: { type: 'integer' },
+            display_order: { type: 'string' },
           },
         },
         400: {
@@ -122,66 +126,6 @@ export const CreateColumnSchema = {
       },
     }
 
-export const editColumnSchema = {
-    tags: ['tasks'],
-    summary: 'обновить колонку',
-    security: [{ bearerAuth: [] }],
-    params: {
-      type: 'object',
-      required: ['boardId', 'columnId'],
-      properties: {
-        boardId: { type: 'integer' },
-        columnId: { type: 'integer' }
-      }
-    },
-    body: {
-      type: 'object',
-      required: ['title', 'display_order'],
-      properties: {
-        title: { type: 'string', minLength: 1, maxLength: 255 },
-        display_order: { type: 'string' }
-      }
-    },
-    response: {
-      200: {
-        type: 'object',
-        properties: {
-          id: { type: 'integer' },
-          title: { type: 'string' },
-          board_id: { type: 'integer' }
-        }
-      },
-      404: {
-        type: 'object',
-        properties: { error: { type: 'string' } }
-      }
-    }
-  }
-
-
-export const deleteColumnSchema = {
-    tags: ['tasks'],
-    summary: 'удалить колонку',
-    security: [{ bearerAuth: [] }],
-    params: {
-      type: 'object',
-      required: ['boardId', 'columnId'],
-      properties: {
-        boardId: { type: 'integer' },
-        columnId: { type: 'integer' }
-      }
-    },
-    response: {
-      204: {
-        type: 'null',
-        description: 'No content'
-      },
-      404: {
-        type: 'object',
-        properties: { error: { type: 'string' } }
-      }
-    }
-}
 
 export const createTaskSchema = {
       tags: ['tasks'],
@@ -237,10 +181,8 @@ export const editTaskSchema = {
         type: 'object',
         properties: {
           title: { type: 'string', minLength: 1, maxLength: 255 },
-          completed: { type: 'boolean' },
-          col_id: { type: 'integer'},
           description: { type: 'string' },
-          display_order: { type: 'string' }
+          user_id: { type: 'integer' },
         },
       },
       response: {

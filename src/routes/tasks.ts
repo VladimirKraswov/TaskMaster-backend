@@ -1,6 +1,7 @@
 import { FastifyPluginAsync } from "fastify"
 import db from "../utils/database"
-import { CreateColumnSchema, createTaskSchema, deleteColumnSchema, deleteTaskSchema, editColumnSchema, editTaskSchema, getAllTasksBoardSchema, getTaskByIdSchema } from "../schemas/tasks"
+import { createTaskSchema, deleteTaskSchema, editTaskSchema, getAllTasksBoardSchema, getTaskByIdSchema, moveTaskSchema } from "../schemas/tasks"
+import { LexoRank } from "lexorank"
 
 interface BoardParams {
   boardId: number
@@ -19,6 +20,17 @@ interface CreateColumnBody {
   title: string
 }
 
+interface MoveColumnBody {
+  targetColumnId?: number;
+  placement: 'before' | 'after' | 'start' | 'end'
+}
+
+interface MoveTaskBody{
+  colId: number
+  targetTaskId?: number;
+  placement: 'before' | 'after' | 'start' | 'end'
+}
+
 interface UpdateColumnBody {
   title: string
   display_order: string
@@ -32,10 +44,8 @@ interface CreateTaskBody {
 
 interface UpdateTaskBody {
   title?: string
-  completed?: boolean
-  col_id?: number
   description?: string
-  display_order?: string
+  user_id?: number
 }
 
 const tasksRoutes: FastifyPluginAsync = async (fastify) => {
@@ -102,108 +112,19 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, reply) => {
       const task = await db("tasks")
-        .where({ id: request.params.id })
-        .first()
+        .join("cols", "tasks.col_id", "cols.id")
+        .select(
+          "tasks.*",
+          "cols.board_id"
+        )
+        .where("tasks.id", request.params.id)
+        .first();
 
       if (!task) {
         return reply.code(404).send({ error: "Task not found" })
       }
 
       return task
-    }
-  )
-
-  /*
-  =====================================================
-  CREATE COLUMN
-  =====================================================
-  */
-  fastify.post<{ Params: BoardParams; Body: CreateColumnBody }>(
-    "/boards/:boardId/columns",
-    {
-      preHandler: [fastify.authenticate],
-      schema: CreateColumnSchema
-    },
-    async (request, reply) => {
-      const { boardId } = request.params
-      const { title } = request.body
-
-      const board = await db("boards")
-        .where({ id: boardId })
-        .first()
-
-      if (!board) {
-        return reply.code(404).send({ error: "Board not found" })
-      }
-
-      const [id] = await db("cols").insert({
-        title,
-        board_id: boardId
-      })
-
-      return reply.code(201).send({
-        id,
-        title,
-        board_id: boardId
-      })
-    }
-  )
-
-  /*
-  =====================================================
-  UPDATE COLUMN
-  =====================================================
-  */
-  fastify.put<{ Params: ColumnParams; Body: UpdateColumnBody }>(
-    "/boards/:boardId/columns/:columnId",
-    {
-      preHandler: [fastify.authenticate],
-      schema: editColumnSchema
-    },
-    async (request, reply) => {
-      const { boardId, columnId } = request.params
-      const { title, display_order } = request.body
-
-      const column = await db("cols")
-        .where({ id: columnId, board_id: boardId })
-        .first()
-
-      if (!column) {
-        return reply.code(404).send({ error: "Column not found" })
-      }
-
-      await db("cols")
-        .where({ id: columnId })
-        .update({ title, display_order })
-
-      return { id: columnId, title, board_id: boardId }
-    }
-  )
-
-  /*
-  =====================================================
-  DELETE COLUMN
-  =====================================================
-  */
-  fastify.delete<{ Params: ColumnParams }>(
-    "/boards/:boardId/columns/:columnId",
-    {
-      preHandler: [fastify.authenticate],
-      schema: deleteColumnSchema
-    },
-    async (request, reply) => {
-      const deleted = await db("cols")
-        .where({
-          id: request.params.columnId,
-          board_id: request.params.boardId
-        })
-        .delete()
-
-      if (!deleted) {
-        return reply.code(404).send({ error: "Column not found" })
-      }
-
-      return reply.code(204).send()
     }
   )
 
@@ -230,11 +151,23 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
         return reply.code(400).send({ error: "Invalid data" })
       }
 
+
+      const lastTask = await db("tasks")
+        .where("col_id", colId)
+        .orderBy("display_order", "desc").first()
+      
+      let display_order = LexoRank.middle().toString()
+      if(lastTask){
+        const last = LexoRank.parse(lastTask.display_order)
+        display_order = last.genNext().toString()
+      }
+
       const [id] = await db("tasks").insert({
         title,
         col_id: colId,
         description: description ?? "",
-        completed: false
+        completed: false,
+        display_order
       })
 
       return reply.code(201).send({
@@ -272,14 +205,10 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
 
       if (request.body.title !== undefined)
         updateData.title = request.body.title
-      if (request.body.completed !== undefined)
-        updateData.completed = request.body.completed
-      if (request.body.col_id !== undefined)
-        updateData.col_id = request.body.col_id
       if (request.body.description !== undefined)
         updateData.description = request.body.description
-      if (request.body.display_order !== undefined)
-        updateData.display_order = request.body.display_order
+      if (request.body.user_id !== undefined)
+        updateData.user_id = request.body.user_id
 
       updateData.updated_at = db.fn.now()
 
@@ -289,6 +218,134 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
 
       return { message: "Task updated successfully" }
     }
+  )
+
+
+  /*
+  =====================================================
+  Move TASK
+  =====================================================
+  */
+  fastify.put<{ Params: TaskParams; Body: MoveTaskBody }>(
+    "/tasks/:id/move",
+    {
+      preHandler: [fastify.authenticate],
+      schema: moveTaskSchema
+    },
+    async (request, reply) => {
+      const { id } = request.params
+      const { placement, targetTaskId, colId } = request.body
+      // 2. Проверяем существование перемещаемой колонки и её принадлежность доске
+      const task = await db('tasks')
+        .where({ id: id })
+        .first();
+      if (!task) {
+        return reply.code(404).send({ error: 'task not found ' });
+      }
+
+      // 3. Если указана целевая колонка, проверяем её
+      if (targetTaskId) {
+        const targetTask = await db('tasks')
+          .where({ id: targetTaskId, col_id: colId })
+          .first();
+        if (!targetTask) {
+          return reply.code(404).send({ error: 'Target task not found' });
+        }
+        // Нельзя перемещать колонку относительно самой себя
+        if (targetTaskId === id) {
+          return reply.code(400).send({ error: 'Cannot move task relative to itself' });
+        }
+      }
+
+      let newOrder: string;
+
+      const getPrevColumn = async (order: string) => {
+        return db('tasks')
+          .where('col_id', colId)
+          .andWhere('display_order', '<', order)
+          .orderBy('display_order', 'desc')
+          .first();
+      };
+
+      // Вспомогательная функция для получения следующей колонки относительно заданного order
+      const getNextColumn = async (order: string) => {
+        return db('tasks')
+          .where('col_id', colId)
+          .andWhere('display_order', '>', order)
+          .orderBy('display_order', 'asc')
+          .first();
+      };
+
+      if (placement === 'start') {
+      // Переместить в начало: перед первой колонкой
+      const firstTask = await db('tasks')
+        .where('col_id', colId)
+        .orderBy('display_order', 'asc')
+        .first();
+      if (firstTask) {
+        newOrder = LexoRank.parse(firstTask.display_order).genPrev().toString();
+      } else {
+        // Если колонок нет вообще (только текущая), используем middle
+        newOrder = LexoRank.middle().toString();
+      }
+    }else if (placement === 'end') {
+      // Переместить в конец: после последней колонки
+      const lastTask = await db('tasks')
+        .where('col_id', colId)
+        .orderBy('display_order', 'desc')
+        .first();
+      if (lastTask) {
+        newOrder = LexoRank.parse(lastTask.display_order).genNext().toString();
+      } else {
+        newOrder = LexoRank.middle().toString();
+      }
+    }
+    else if (placement === 'before' || placement === 'after') {
+      if (!targetTaskId) {
+        return reply.code(400).send({ error: 'targetColumnId is required for before/after placement' });
+      }
+
+      // Получаем целевую колонку (уже проверили существование)
+      const target = await db('tasks')
+        .where({ id: targetTaskId, col_id: colId })
+        .first();
+
+        if (placement === 'before') {
+        // Вставить перед target: найти предыдущую колонку
+        const prev = await getPrevColumn(target.display_order);
+        if (prev) {
+          // Есть предыдущая — вставляем между prev и target
+          newOrder = LexoRank.parse(prev.display_order)
+            .between(LexoRank.parse(target.display_order))
+            .toString();
+        } else {
+          // target первая — вставляем перед ней (genPrev)
+          newOrder = LexoRank.parse(target.display_order).genPrev().toString();
+        }
+      } else { // after
+        // Вставить после target: найти следующую колонку
+        const next = await getNextColumn(target.display_order);
+        if (next) {
+          // Есть следующая — вставляем между target и next
+          newOrder = LexoRank.parse(target.display_order)
+            .between(LexoRank.parse(next.display_order))
+            .toString();
+        } else {
+          // target последняя — вставляем после неё (genNext)
+          newOrder = LexoRank.parse(target.display_order).genNext().toString();
+        }
+      }
+    } else {
+      return reply.code(400).send({ error: 'Invalid placement value' });
+    }
+    await db('tasks')
+      .where({ id: id })
+      .update({ display_order: newOrder, col_id: colId, updated_at: db.fn.now() });
+
+    // 6. Возвращаем обновлённую колонку (можно вернуть полные данные)
+    const updatedColumn = await db('tasks').where({ id: id }).first();
+    return reply.code(200).send(updatedColumn);
+  }
   )
 
   /*
