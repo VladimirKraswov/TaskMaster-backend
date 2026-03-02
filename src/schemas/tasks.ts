@@ -31,6 +31,7 @@ export const getAllTasksBoardSchema = {
                       positionVersion: {type: 'integer'},
                       display_order: {type: 'string'},
                       user_id: {type: 'integer'},
+                      tags: {type: 'string'}
                     }
                   }
                 }
@@ -68,6 +69,7 @@ export const getTaskByIdSchema ={
             board_id: { type: 'integer' },
             col_id: { type: 'integer' },
             contentVersion: {type: 'integer'},
+            tags: {type: 'string'},
             positionVersion: {type: 'integer'},
             created_at: { type: 'string', format: 'date-time' },
             updated_at: { type: 'string', format: 'date-time' },
@@ -126,6 +128,29 @@ export const moveTaskSchema = {
             error: { type: 'string' },
           },
         },
+        409: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' },
+            message: { type: 'string' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'integer' },
+                title: { type: 'string' },
+                description: {type: 'string'},
+                display_order: {type: 'string'},
+                board_id: { type: 'integer' },
+                col_id: { type: 'integer' },
+                contentVersion: {type: 'integer'},
+                tags: {type: 'string'},
+                positionVersion: {type: 'integer'},
+                created_at: { type: 'string', format: 'date-time' },
+                updated_at: { type: 'string', format: 'date-time' },
+              },
+            }
+          }
+        }
       },
     }
 
@@ -148,6 +173,7 @@ export const createTaskSchema = {
           title: { type: 'string', minLength: 1, maxLength: 255 },
           colId: { type: 'integer' },
           description: { type: 'string' },
+          tags: { type: 'string' }
         },
       },
       response: {
@@ -160,6 +186,7 @@ export const createTaskSchema = {
             col_id: {type: 'integer'},
             contentVersion: {type: 'integer'},
             positionVersion: {type: 'integer'},
+            tags: { type: 'string' }
           },
         },
         400: {
@@ -188,7 +215,8 @@ export const editTaskSchema = {
           title: { type: 'string', minLength: 1, maxLength: 255 },
           description: { type: 'string' },
           user_id: { type: 'integer' },
-          contentVersion: { type: 'integer' }
+          contentVersion: { type: 'integer' },
+          tags: {type: 'string'}
         },
       },
       response: {
@@ -204,6 +232,29 @@ export const editTaskSchema = {
             error: { type: 'string' },
           },
         },
+        409: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' },
+            message: { type: 'string' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'integer' },
+                title: { type: 'string' },
+                description: {type: 'string'},
+                display_order: {type: 'string'},
+                board_id: { type: 'integer' },
+                col_id: { type: 'integer' },
+                contentVersion: {type: 'integer'},
+                tags: {type: 'string'},
+                positionVersion: {type: 'integer'},
+                created_at: { type: 'string', format: 'date-time' },
+                updated_at: { type: 'string', format: 'date-time' },
+              },
+            }
+          }
+        }
       },
     }
 

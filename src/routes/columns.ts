@@ -103,6 +103,7 @@ const columnRoutes: FastifyPluginAsync = async (fastify) => {
         return reply.code(409).send({
           error: "Position conflict",
           message: "The task has been moved by another user. Please refresh and try again.",
+          data: column
         });
       }
 
@@ -238,6 +239,7 @@ const columnRoutes: FastifyPluginAsync = async (fastify) => {
         return reply.code(409).send({
           error: "Position conflict",
           message: "The task has been moved by another user. Please refresh and try again.",
+          data: column
         });
       }
 

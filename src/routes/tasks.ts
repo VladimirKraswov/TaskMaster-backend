@@ -22,6 +22,7 @@ interface CreateTaskBody {
   title: string
   colId: number
   description?: string
+  tags?: string
 }
 
 interface UpdateTaskBody {
@@ -29,6 +30,7 @@ interface UpdateTaskBody {
   description?: string
   user_id?: number
   contentVersion: number
+  tags?: string
 }
 
 const tasksRoutes: FastifyPluginAsync = async (fastify) => {
@@ -63,7 +65,7 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
       const colIds = cols.map((c) => c.id)
 
       const tasks = await db("tasks")
-       .select('id', 'title', 'col_id', 'user_id', 'display_order', 'contentVersion', 'positionVersion')
+       .select('id', 'title', 'col_id', 'user_id', 'display_order', 'contentVersion', 'positionVersion', 'tags')
         .whereIn("col_id", colIds)
         .orderBy("display_order", "asc")
 
@@ -125,7 +127,7 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, reply) => {
       const { boardId } = request.params
-      const { title, colId, description } = request.body
+      const { title, colId, description, tags } = request.body
 
       const col = await db("cols")
         .where({ id: colId, board_id: boardId })
@@ -151,14 +153,16 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
         col_id: colId,
         description: description ?? "",
         completed: false,
-        display_order
+        display_order,
+        tags
       })
 
       return reply.code(201).send({
         id,
         title,
         board_id: boardId,
-        col_id: colId
+        col_id: colId,
+        tags
       })
     }
   )
@@ -176,7 +180,12 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, reply) => {
       const task = await db("tasks")
-        .where({ id: request.params.id })
+        .join("cols", "tasks.col_id", "cols.id")
+        .select(
+          "tasks.*",
+          "cols.board_id"
+        )
+        .where("tasks.id", request.params.id)
         .first()
 
       if (!task) {
@@ -187,6 +196,7 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
         return reply.code(409).send({
           error: "Position conflict",
           message: "The task has been moved by another user. Please refresh and try again.",
+          data: task
         });
       }
 
@@ -198,6 +208,8 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
         updateData.title = request.body.title
       if (request.body.description !== undefined)
         updateData.description = request.body.description
+      if (request.body.tags !== undefined)
+        updateData.tags = request.body.tags
       if (request.body.user_id !== undefined)
         updateData.user_id = request.body.user_id
       updateData.contentVersion = task.contentVersion + 1 
@@ -229,7 +241,12 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
       const { placement, targetTaskId, colId, positionVersion } = request.body
       // 1. Проверяем существование перемещаемой колонки и её принадлежность доске
       const task = await db('tasks')
-        .where({ id: id })
+        .join("cols", "tasks.col_id", "cols.id")
+        .select(
+          "tasks.*",
+          "cols.board_id"
+        )
+        .where("tasks.id", request.params.id)
         .first();
       if (!task) {
         return reply.code(404).send({ error: 'task not found ' });
@@ -240,6 +257,7 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
         return reply.code(409).send({
           error: "Position conflict",
           message: "The task has been moved by another user. Please refresh and try again.",
+          data: task
         });
       }
 
