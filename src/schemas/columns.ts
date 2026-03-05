@@ -72,6 +72,23 @@ export const CreateColumnSchema = {
             error: { type: 'string' },
           },
         },
+        409: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' },
+            message: { type: 'string' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'integer' },
+                title: { type: 'string' },
+                board_id: { type: 'integer' },
+                version: { type: 'integer' },
+                display_order: { type: 'string' },
+              },
+            }
+          }
+        }
       },
     }
 
@@ -101,14 +118,30 @@ export const editColumnSchema = {
         properties: {
           id: { type: 'integer' },
           title: { type: 'string' },
-          display_order: { type: 'string' },
           board_id: { type: 'integer' }
         }
       },
       404: {
         type: 'object',
         properties: { error: { type: 'string' } }
-      }
+      },
+      409: {
+          type: 'object',
+          properties: {
+            error: { type: 'string' },
+            message: { type: 'string' },
+            data: {
+              type: 'object',
+              properties: {
+                id: { type: 'integer' },
+                title: { type: 'string' },
+                board_id: { type: 'integer' },
+                version: { type: 'integer' },
+                display_order: { type: 'string' },
+              },
+            }
+          }
+        }
     }
   }
 
