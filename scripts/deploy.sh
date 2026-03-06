@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Скрипт автоматического развёртывания TypeScript-проекта с миграциями и pm2
-# Использование: ./deploy.sh [--install]
+# Использование: ./scripts/deploy.sh [--install]
 
 set -e  # Прерывать выполнение при ошибке
 
@@ -11,13 +11,18 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-APP_NAME="taskmaster-backend"   # Имя процесса в pm2 (можно изменить)
-SCRIPT_PATH="dist/src/server.js" # Путь к скомпилированному серверу (относительно корня)
+APP_NAME="taskmaster-backend"      # Имя процесса в pm2
+SCRIPT_PATH="dist/src/server.js"   # Путь к скомпилированному серверу от корня проекта
 
-# Переход в директорию проекта (там, где лежит скрипт)
-cd "$(dirname "$0")"
+# Абсолютный путь к директории скрипта
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# Переход в корень проекта (на уровень выше папки scripts)
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$PROJECT_ROOT"
 
 echo -e "${YELLOW}🔧 Начинаем развёртывание проекта...${NC}"
+echo -e "${YELLOW}📁 Корень проекта: $PROJECT_ROOT${NC}"
 
 # 1. Установка зависимостей (опционально, если передан флаг --install)
 if [[ "$1" == "--install" ]]; then
@@ -64,6 +69,6 @@ pm2 save
 echo -e "${GREEN}✅ Развёртывание завершено! Статус процессов:${NC}"
 pm2 status
 
-# 9. (Опционально) Показать последние логи
+# 9. Показать последние логи
 echo -e "${YELLOW}📋 Последние 10 строк лога:${NC}"
 pm2 logs "$APP_NAME" --lines 10 --nostream
