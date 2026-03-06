@@ -106,7 +106,7 @@ export const editColumnSchema = {
     },
     body: {
       type: 'object',
-      required: ['title', 'display_order'],
+      required: ['title', 'version'],
       properties: {
         title: { type: 'string', minLength: 1, maxLength: 255 },
         version: { type: 'integer' }
