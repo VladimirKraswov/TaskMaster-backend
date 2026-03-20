@@ -33,13 +33,42 @@ interface UpdateTaskBody {
   tags?: string
 }
 
+type TasksQuery = {
+  search?: string
+
+  userId?: number
+  noUser?: boolean
+
+  tags?: string
+
+  createdFrom?: string
+  createdTo?: string
+
+  updatedFrom?: string
+  updatedTo?: string
+
+  sortBy?: 'created_at' | 'updated_at' | 'title' | 'display_order'
+  sortOrder?: 'asc' | 'desc'
+
+  limit?: number
+  offset?: number
+}
+
+const tagsCompire = (tags: string | null | undefined, search: string | null | undefined) => {
+  if(!search)return true
+  if(!tags) return false
+  const tagList = tags.split(",").map(i=>i.trim())
+  const searchList = search.split(",").map(i=>i.trim())
+  return searchList.every(s=>tagList.includes(s))
+}
+
 const tasksRoutes: FastifyPluginAsync = async (fastify) => {
   /*
   =====================================================
   GET BOARD TASKS (columns + tasks)
   =====================================================
   */
-  fastify.get<{ Params: BoardParams }>(
+  fastify.get<{ Params: BoardParams, Querystring: TasksQuery }>(
     "/boards/:boardId/tasks",
     {
       preHandler: [fastify.authenticate],
@@ -47,6 +76,7 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, reply) => {
       const { boardId } = request.params
+      const { search, userId, noUser, createdFrom, createdTo, updatedFrom, updatedTo, tags } = request.query
 
       const board = await db("boards")
         .where({ id: boardId })
@@ -64,11 +94,49 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
 
       const colIds = cols.map((c) => c.id)
 
-      const tasks = await db("tasks")
-       .select('id', 'title', 'col_id', 'user_id', 'display_order', 'contentVersion', 'positionVersion', 'tags')
+      const query = db("tasks")
+        .select('id', 'title', 'col_id', 'user_id', 'display_order', 'contentVersion', 'positionVersion', 'tags')
         .whereIn("col_id", colIds)
-        .orderBy("display_order", "asc")
 
+      if(search){
+        query.andWhere((qb)=>{
+          qb.whereLike('title', `%${search}%`)
+          .orWhereLike('description', `%${search}%`)
+          .orWhereLike(`tags`, `%${search}%`)
+        })
+      }
+
+      if (userId) {
+        query.where('user_id', userId)
+      }
+
+      if (noUser) {
+        query.whereNull('user_id')
+      }
+
+      if (createdFrom) {
+        query.where('created_at', '>=', createdFrom)
+      }
+
+      if (createdTo) {
+        query.where('created_at', '<=', createdTo)
+      }
+
+      if (updatedFrom) {
+        query.where('updated_at', '>=', updatedFrom)
+      }
+
+      if (updatedTo) {
+        query.where('updated_at', '<=', updatedTo)
+      }
+
+      const sortBy = request.query.sortBy || 'display_order'
+      const sortOrder = request.query.sortOrder || 'asc'
+
+      const tasksCond = await query.orderBy(sortBy, sortOrder)
+
+      const tasks = tasksCond.filter(item=>tagsCompire(item.tags, request.query.tags))
+       
       const tasksByCol: Record<number, any[]> = {}
 
       for (const task of tasks) {

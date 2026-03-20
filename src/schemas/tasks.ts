@@ -9,6 +9,36 @@ export const getAllTasksBoardSchema = {
             boardId: { type: 'integer' },
           },
         },
+        querystring: {
+          type: 'object',
+          properties: {
+            search: { type: 'string' },
+
+            userId: { type: 'integer' },
+            noUser: { type: 'boolean' },
+
+            createdFrom: { type: 'string', format: 'date-time' },
+            createdTo: { type: 'string', format: 'date-time' },
+
+            updatedFrom: { type: 'string', format: 'date-time' },
+            updatedTo: { type: 'string', format: 'date-time' },
+
+            tags: { type: 'string' },
+
+            sortBy: {
+              type: 'string',
+              enum: ['created_at', 'updated_at', 'title', 'display_order']
+            },
+
+            sortOrder: {
+              type: 'string',
+              enum: ['asc', 'desc']
+            },
+
+            limit: { type: 'integer', minimum: 1, maximum: 100 },
+            offset: { type: 'integer', minimum: 0 }
+          }
+        },
         response: {
           200: {
             type: 'array',
