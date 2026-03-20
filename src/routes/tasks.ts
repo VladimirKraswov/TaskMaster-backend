@@ -39,10 +39,10 @@ type TasksQuery = {
   userId?: number
   noUser?: boolean
 
-  tags?: string
-
   createdFrom?: string
   createdTo?: string
+
+  tags?: string
 
   updatedFrom?: string
   updatedTo?: string
@@ -76,7 +76,7 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, reply) => {
       const { boardId } = request.params
-      const { search, userId, noUser, createdFrom, createdTo, updatedFrom, updatedTo, tags } = request.query
+      const { search, userId, noUser, createdFrom, createdTo, updatedFrom, updatedTo } = request.query
 
       const board = await db("boards")
         .where({ id: boardId })
@@ -146,10 +146,13 @@ const tasksRoutes: FastifyPluginAsync = async (fastify) => {
         tasksByCol[task.col_id].push(task)
       }
 
-      return cols.map((col) => ({
+      const resData = cols.map((col) => ({
         ...col,
         tasks: tasksByCol[col.id] ?? []
       }))
+      return{
+        items: resData
+      }
     }
   )
 

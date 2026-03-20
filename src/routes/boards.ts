@@ -46,7 +46,7 @@ const boardsRoutes: FastifyPluginAsync = async (fastify) => {
       preHandler: [fastify.authenticate],
       schema: getBoardsSchema
     },
-    async (request): Promise<Board[]> => {
+    async (request): Promise<{items:Board[], total: number, offset: number, limit: number}> => {
       const query = request.query
 
       const {
@@ -80,9 +80,17 @@ const boardsRoutes: FastifyPluginAsync = async (fastify) => {
       if (updatedTo) {
         qb.andWhere("updated_at", "<=", updatedTo)
       }
-      qb.orderBy(sortBy ?? "created_at", sortOrder)
-      qb.limit(limit).offset(offset)
-      return await qb
+      const totalResult = await qb.clone().count("* as count").first()
+      const total = Number(totalResult?.count) || 0
+
+      const res = await qb.clone().orderBy(sortBy ?? "created_at", sortOrder).limit(limit).offset(offset)
+
+      return {
+        items: res,
+        total: total,
+        limit,
+        offset
+      }
     }
   )
 

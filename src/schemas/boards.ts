@@ -58,20 +58,27 @@ export const getBoardsSchema = {
       }
     }
   },
-    
     response: {
         200: {
-            type: 'array',
-            items: {
-            type: 'object',
-            properties: {
-                id: { type: 'integer' },
-                name: { type: 'string' },
-                user_id: { type: 'integer' },
-                created_at: { type: 'string', format: 'date-time' },
-                updated_at: { type: 'string', format: 'date-time' },
-            },
-            },
+          type: 'object',
+          properties: {
+            total: {type: 'integer'},
+            offset: {type: 'integer'},
+            limit: {type: 'integer'},
+            items:{
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'integer' },
+                  name: { type: 'string' },
+                  user_id: { type: 'integer' },
+                  created_at: { type: 'string', format: 'date-time' },
+                  updated_at: { type: 'string', format: 'date-time' },
+                },
+              },
+            }
+          }
         },
     },
 }

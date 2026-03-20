@@ -41,32 +41,37 @@ export const getAllTasksBoardSchema = {
         },
         response: {
           200: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                id: { type: 'integer' },
-                title: { type: 'string' },
-                board_id: { type: 'integer' },
-                version: {type: 'integer'},
-                display_order: {type: 'string'},
-                tasks: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      id: { type: 'integer' },
-                      title: { type: 'string' },
-                      contentVersion: {type: 'integer'},
-                      positionVersion: {type: 'integer'},
-                      display_order: {type: 'string'},
-                      user_id: {type: 'integer'},
-                      tags: {type: 'string'}
+            type: 'object',
+            properties: {
+              items: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'integer' },
+                    title: { type: 'string' },
+                    board_id: { type: 'integer' },
+                    version: {type: 'integer'},
+                    display_order: {type: 'string'},
+                    tasks: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          id: { type: 'integer' },
+                          title: { type: 'string' },
+                          contentVersion: {type: 'integer'},
+                          positionVersion: {type: 'integer'},
+                          display_order: {type: 'string'},
+                          user_id: {type: 'integer'},
+                          tags: {type: 'string'}
+                        }
+                      }
                     }
-                  }
-                }
-              },
-            },
+                  },
+                },
+              }
+            }
           },
           404: {
             type: 'object',
