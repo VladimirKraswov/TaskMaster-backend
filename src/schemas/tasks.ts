@@ -9,34 +9,69 @@ export const getAllTasksBoardSchema = {
             boardId: { type: 'integer' },
           },
         },
+        querystring: {
+          type: 'object',
+          properties: {
+            search: { type: 'string' },
+
+            userId: { type: 'integer' },
+            noUser: { type: 'boolean' },
+
+            createdFrom: { type: 'string', format: 'date-time' },
+            createdTo: { type: 'string', format: 'date-time' },
+
+            updatedFrom: { type: 'string', format: 'date-time' },
+            updatedTo: { type: 'string', format: 'date-time' },
+
+            tags: { type: 'string' },
+
+            sortBy: {
+              type: 'string',
+              enum: ['created_at', 'updated_at', 'title', 'display_order']
+            },
+
+            sortOrder: {
+              type: 'string',
+              enum: ['asc', 'desc']
+            },
+
+            limit: { type: 'integer', minimum: 1, maximum: 100 },
+            offset: { type: 'integer', minimum: 0 }
+          }
+        },
         response: {
           200: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                id: { type: 'integer' },
-                title: { type: 'string' },
-                board_id: { type: 'integer' },
-                version: {type: 'integer'},
-                display_order: {type: 'string'},
-                tasks: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      id: { type: 'integer' },
-                      title: { type: 'string' },
-                      contentVersion: {type: 'integer'},
-                      positionVersion: {type: 'integer'},
-                      display_order: {type: 'string'},
-                      user_id: {type: 'integer'},
-                      tags: {type: 'string'}
+            type: 'object',
+            properties: {
+              items: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'integer' },
+                    title: { type: 'string' },
+                    board_id: { type: 'integer' },
+                    version: {type: 'integer'},
+                    display_order: {type: 'string'},
+                    tasks: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          id: { type: 'integer' },
+                          title: { type: 'string' },
+                          contentVersion: {type: 'integer'},
+                          positionVersion: {type: 'integer'},
+                          display_order: {type: 'string'},
+                          user_id: {type: 'integer'},
+                          tags: {type: 'string'}
+                        }
+                      }
                     }
-                  }
-                }
-              },
-            },
+                  },
+                },
+              }
+            }
           },
           404: {
             type: 'object',

@@ -18,22 +18,79 @@ interface CreateBoardBody {
   name: string
 }
 
+interface GetBoardsQuery {
+  search?: string
+
+  createdFrom?: string
+  createdTo?: string
+
+  updatedFrom?: string
+  updatedTo?: string
+
+  sortBy?: "created_at" | "updated_at" | "name"
+  sortOrder?: "asc" | "desc"
+
+  limit?: number
+  offset?: number
+}
+
 const boardsRoutes: FastifyPluginAsync = async (fastify) => {
   /*
   =====================================================
   GET ALL BOARDS
   =====================================================
   */
-  fastify.get(
+  fastify.get<{Querystring: GetBoardsQuery}>(
     "/boards",
     {
       preHandler: [fastify.authenticate],
       schema: getBoardsSchema
     },
-    async (request): Promise<Board[]> => {
-      return db("boards")
-        .where("user_id", request.user.id)
-        .orderBy("created_at", "desc")
+    async (request): Promise<{items:Board[], total: number, offset: number, limit: number}> => {
+      const query = request.query
+
+      const {
+        search,
+        createdFrom,
+        createdTo,
+        updatedFrom,
+        updatedTo,
+        sortBy = "created_at",
+        sortOrder = "desc",
+        limit = 20,
+        offset = 0
+      } = query
+
+      const qb = db("boards").where("user_id", request.user.id)
+      if(search){
+        qb.andWhere("name", "like", `%${search}%`)
+      }
+      if (createdFrom) {
+        qb.andWhere("created_at", ">=", createdFrom)
+      }
+
+      if (createdTo) {
+        qb.andWhere("created_at", "<=", createdTo)
+      }
+
+      if (updatedFrom) {
+        qb.andWhere("updated_at", ">=", updatedFrom)
+      }
+
+      if (updatedTo) {
+        qb.andWhere("updated_at", "<=", updatedTo)
+      }
+      const totalResult = await qb.clone().count("* as count").first()
+      const total = Number(totalResult?.count) || 0
+
+      const res = await qb.clone().orderBy(sortBy ?? "created_at", sortOrder).limit(limit).offset(offset)
+
+      return {
+        items: res,
+        total: total,
+        limit,
+        offset
+      }
     }
   )
 

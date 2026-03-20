@@ -2,19 +2,83 @@ export const getBoardsSchema = {
     tags: ['boards'],
     summary: 'Получить все доски пользователя',
     security: [{ bearerAuth: [] }],
+
+    querystring: {
+    type: 'object',
+    properties: {
+      /*
+      =========================
+      SEARCH
+      =========================
+      */
+      search: { type: 'string', minLength: 1 },
+
+      /*
+      =========================
+      FILTERS
+      =========================
+      */
+      createdFrom: { type: 'string', format: 'date-time' },
+      createdTo: { type: 'string', format: 'date-time' },
+
+      updatedFrom: { type: 'string', format: 'date-time' },
+      updatedTo: { type: 'string', format: 'date-time' },
+
+      /*
+      =========================
+      SORT
+      =========================
+      */
+      sortBy: {
+        type: 'string',
+        enum: ['created_at', 'updated_at', 'name'],
+        default: 'created_at'
+      },
+      sortOrder: {
+        type: 'string',
+        enum: ['asc', 'desc'],
+        default: 'desc'
+      },
+
+      /*
+      =========================
+      PAGINATION
+      =========================
+      */
+      limit: {
+        type: 'integer',
+        minimum: 1,
+        maximum: 100,
+        default: 20
+      },
+      offset: {
+        type: 'integer',
+        minimum: 0,
+        default: 0
+      }
+    }
+  },
     response: {
         200: {
-            type: 'array',
-            items: {
-            type: 'object',
-            properties: {
-                id: { type: 'integer' },
-                name: { type: 'string' },
-                user_id: { type: 'integer' },
-                created_at: { type: 'string', format: 'date-time' },
-                updated_at: { type: 'string', format: 'date-time' },
-            },
-            },
+          type: 'object',
+          properties: {
+            total: {type: 'integer'},
+            offset: {type: 'integer'},
+            limit: {type: 'integer'},
+            items:{
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  id: { type: 'integer' },
+                  name: { type: 'string' },
+                  user_id: { type: 'integer' },
+                  created_at: { type: 'string', format: 'date-time' },
+                  updated_at: { type: 'string', format: 'date-time' },
+                },
+              },
+            }
+          }
         },
     },
 }
